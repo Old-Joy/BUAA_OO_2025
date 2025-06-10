@@ -1,0 +1,98 @@
+@startuml
+!theme plain
+hide empty members
+
+title Class Diagram for Social Network Application (Further Simplified Package)
+
+package "com.oocourse.spec1.main" <<Frame>> {
+  interface NetworkInterface
+  interface PersonInterface
+  interface TagInterface
+  class Runner
+}
+
+class MainClass {
+  + {static} main(args: String[]): void
+}
+
+class Network implements NetworkInterface {
+  - personsMap: Map<Integer, PersonInterface>
+  - totalTripleSum: long
+  + Network()
+  - countCommonNeighbors(uid: int, vid: int): int
+  + addPerson(person: PersonInterface): void
+  + getPerson(id: int): PersonInterface
+  + containsPerson(id: int): boolean
+  + addRelation(id1: int, id2: int, value: int): void
+  + modifyRelation(id1: int, id2: int, value: int): void
+  + queryValue(id1: int, id2: int): int
+  + isCircle(id1: int, id2: int): boolean
+  + queryTripleSum(): int
+  + getPersons(): PersonInterface[]
+  + addTag(personId: int, tag: TagInterface): void
+  + addPersonToTag(personId1: int, personId2: int, tagId: int): void
+  + queryTagAgeVar(personId: int, tagId: int): int
+  + delPersonFromTag(personId1: int, personId2: int, tagId: int): void
+  + delTag(personId: int, tagId: int): void
+  + queryBestAcquaintance(id: int): int
+}
+
+class Person implements PersonInterface {
+  - id: int
+  - name: String
+  - age: int
+  - acquaintance: Map<Integer, PersonInterface>
+  - value: Map<Integer, Integer>
+  - tags: Map<Integer, TagInterface>
+  + Person(id: int, name: String, age: int)
+  + getId(): int
+  + getName(): String
+  + getAge(): int
+  + equals(obj: Object): boolean
+  + hashCode(): int
+  + isLinked(person: PersonInterface): boolean
+  + queryValue(person: PersonInterface): int
+  + containsTag(id: int): boolean
+  + getTag(id: int): TagInterface
+  + addTag(tag: TagInterface): void
+  + delTag(id: int): void
+  + addAcquaintance(person: PersonInterface, value: int): void
+  + removeAcquaintance(person: PersonInterface): void
+  + modifyRelationValue(person: PersonInterface, newValue: int): void
+  + getAcquaintances(): Map<Integer, PersonInterface>
+  + getAcquaintanceValues(): Map<Integer, Integer>
+  + getTags(): Map<Integer, TagInterface>
+  + strictEquals(person: PersonInterface): boolean
+}
+
+class Tag implements TagInterface {
+  - id: int
+  - persons: Map<Integer, PersonInterface>
+  + Tag(id: int)
+  + getId(): int
+  + equals(obj: Object): boolean
+  + hashCode(): int
+  + addPerson(person: PersonInterface): void
+  + hasPerson(person: PersonInterface): boolean
+  + delPerson(person: PersonInterface): void
+  + getSize(): int
+  + getAgeMean(): int
+  + getAgeVar(): int
+  + getPersons(): Map<Integer, PersonInterface>
+}
+
+' Relationships
+MainClass ..> Runner : uses
+MainClass ..> Person : uses (dependency for Runner)
+MainClass ..> Network : uses (dependency for Runner)
+MainClass ..> Tag : uses (dependency for Runner)
+
+Network "1" o-- "*" PersonInterface : personsMap
+Network ..> Person : uses (casts PersonInterface to Person)
+
+Person "1" o-- "*" PersonInterface : acquaintance
+Person "1" o-- "*" TagInterface : tags
+
+Tag "1" o-- "*" PersonInterface : persons
+
+@enduml

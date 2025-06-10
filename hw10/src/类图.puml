@@ -1,0 +1,166 @@
+@startuml
+!theme plain
+hide empty members
+
+title Class Diagram for Social Network Application (Core Structure)
+
+' Globally defined interfaces (previously in com.oocourse.spec2.main)
+interface NetworkInterface
+interface PersonInterface
+interface TagInterface
+interface OfficialAccountInterface
+
+' Core Classes
+class Network implements NetworkInterface {
+  - personsMap: Map<Integer, PersonInterface>
+  - accountsMap: Map<Integer, OfficialAccountInterface>
+  - articleToContributorMap: Map<Integer, Integer>
+  - articlesSet: Set<Integer>
+  - totalTripleSum: long
+  - shortestPathCache: Map<PathCacheKey, Integer>
+  + Network()
+  ' --- Methods from NetworkInterface ---
+  + addPerson(person: PersonInterface): void
+  + getPerson(id: int): PersonInterface
+  + containsPerson(id: int): boolean
+  + addRelation(id1: int, id2: int, value: int): void
+  + modifyRelation(id1: int, id2: int, value: int): void
+  + queryValue(id1: int, id2: int): int
+  + isCircle(id1: int, id2: int): boolean
+  + queryTripleSum(): int
+  + addTag(personId: int, tag: TagInterface): void
+  + addPersonToTag(personId1: int, personId2: int, tagId: int): void
+  + queryTagValueSum(personId: int, tagId: int): int
+  + queryTagAgeVar(personId: int, tagId: int): int
+  + delPersonFromTag(personId1: int, personId2: int, tagId: int): void
+  + delTag(personId: int, tagId: int): void
+  + queryBestAcquaintance(id: int): int
+  + queryCoupleSum(): int
+  + queryShortestPath(id1: int, id2: int): int
+  + containsAccount(id: int): boolean
+  + createOfficialAccount(personId: int, accountId: int, name: String): void
+  + deleteOfficialAccount(personId: int, accountId: int): void
+  + containsArticle(id: int): boolean
+  + contributeArticle(personId: int, accountId: int, articleId: int): void
+  + deleteArticle(personId: int, accountId: int, articleId: int): void
+  + followOfficialAccount(personId: int, accountId: int): void
+  + queryBestContributor(id: int): int
+  + queryReceivedArticles(id: int): List<Integer>
+}
+Network +-- Network.PathCacheKey
+
+class "Network.PathCacheKey" as NetworkPathCacheKey {
+  - id1: int
+  - id2: int
+  + PathCacheKey(id1: int, id2: int)
+  + equals(o: Object): boolean
+  + hashCode(): int
+}
+
+class OfficialAccount implements OfficialAccountInterface {
+  - ownerId: int
+  - id: int
+  - name: String
+  - followerMap: Map<Integer, PersonInterface>
+  - contributionMap: Map<Integer, Integer>
+  - articlesSet: Set<Integer>
+  + OfficialAccount(ownerId: int, id: int, name: String)
+  ' --- Methods from OfficialAccountInterface ---
+  + getOwnerId(): int
+  + addFollower(person: PersonInterface): void
+  + containsFollower(person: PersonInterface): boolean
+  + addArticle(person: PersonInterface, id: int): void
+  + containsArticle(id: int): boolean
+  + removeArticle(id: int): void
+  + getBestContributor(): int
+  ' --- Other core public methods ---
+  + getId(): int
+  + getName(): String
+  + equals(obj: Object): boolean
+  + hashCode(): int
+}
+
+class Person implements PersonInterface {
+  - id: int
+  - name: String
+  - age: int
+  - acquaintanceMap: Map<Integer, PersonInterface>
+  - valueMap: Map<Integer, Integer>
+  - sortedAcquaintances: TreeSet<AcquaintanceEntry>
+  - tags: Map<Integer, TagInterface> ' Tags owned by this person
+  - receivedArticles: List<Integer>
+  - associatedTags: Map<Integer, TagInterface> ' Tags this person is a member of
+  + Person(id: int, name: String, age: int)
+  ' --- Methods from PersonInterface ---
+  + getId(): int
+  + getName(): String
+  + getAge(): int
+  + equals(obj: Object): boolean
+  + isLinked(person: PersonInterface): boolean
+  + queryValue(person: PersonInterface): int
+  + containsTag(id: int): boolean
+  + getTag(id: int): TagInterface
+  + addTag(tag: TagInterface): void
+  + delTag(id: int): void
+  + getReceivedArticles(): List<Integer>
+  + queryReceivedArticles(): List<Integer>
+  ' --- Other core public methods for relation/tag management ---
+  + hashCode(): int
+  + addAcquaintance(person: PersonInterface, val: int): void
+  + removeAcquaintance(person: PersonInterface): void
+  + modifyRelationValue(person: PersonInterface, newValue: int): void
+  + getAcquaintances(): Map<Integer, PersonInterface>
+  + getOwnedTags(): Map<Integer, TagInterface>
+  + associateWithTag(tag: TagInterface): void
+  + disassociateFromTag(tagId: int): void
+  + getAssociatedTags(): Map<Integer, TagInterface>
+}
+Person +-- Person.AcquaintanceEntry
+
+class "Person.AcquaintanceEntry" as PersonAcquaintanceEntry {
+  - personId: int
+  - value: int
+  + AcquaintanceEntry(personId: int, value: int)
+  + compareTo(other: AcquaintanceEntry): int
+  + equals(o: Object): boolean
+  + hashCode(): int
+}
+
+class Tag implements TagInterface {
+  - id: int
+  - persons: Map<Integer, PersonInterface>
+  - cachedValueSum: long
+  + Tag(id: int)
+  ' --- Methods from TagInterface ---
+  + getId(): int
+  + equals(obj: Object): boolean
+  + addPerson(person: PersonInterface): void
+  + hasPerson(person: PersonInterface): boolean
+  + getValueSum(): int
+  + getAgeMean(): int
+  + getAgeVar(): int
+  + delPerson(person: PersonInterface): void
+  + getSize(): int
+  ' --- Other core public methods ---
+  + hashCode(): int
+  + updateRelationValue(p1: PersonInterface, p2: PersonInterface, change: int): void
+}
+
+' Structural Relationships
+Network .up.|> NetworkInterface
+OfficialAccount .up.|> OfficialAccountInterface
+Person .up.|> PersonInterface
+Tag .up.|> TagInterface
+
+Network "1" o-- "*" PersonInterface : personsMap
+Network "1" o-- "*" OfficialAccountInterface : accountsMap
+
+OfficialAccount "1" o-- "*" PersonInterface : followerMap
+
+Person "1" o-- "*" PersonInterface : acquaintanceMap
+Person "1" o-- "*" TagInterface : tags (owned)
+Person "1" o-- "*" TagInterface : associatedTags (member of)
+
+Tag "1" o-- "*" PersonInterface : persons
+
+@enduml
